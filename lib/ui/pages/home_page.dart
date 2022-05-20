@@ -19,286 +19,279 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: blackColor,
         body: Stack(
           children: [
-            Align(
-                alignment: Alignment.topCenter,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  physics: const ClampingScrollPhysics(),
-                  child: Column(
-                    children: [
-                      Container(
-                          height: MediaQuery.of(context).size.height * 2 / 3,
-                          decoration: BoxDecoration(
-                              color: blackColor,
-                              image: const DecorationImage(
-                                  image: CachedNetworkImageProvider(
-                                      "https://www.themoviedb.org/t/p/w1280/7W0G3YECgDAfnuiHG91r8WqgIOe.jpg"),
-                                  fit: BoxFit.cover))),
-                      const SizedBox(height: 10),
-                      Text(
-                        "Feel-Good, Goofy, Kids Music, Notable Soundtrack, Musical",
-                        style: whiteTextFont.copyWith(fontSize: 12),
-                      ),
-                      const SizedBox(height: 20),
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 50),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 65),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                physics: const ClampingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Stack(children: [
+                      FutureBuilder(
+                          future: MovieServices.getUpComingMovies(1),
+                          builder: ((context, snapshot) {
+                            if (snapshot.hasData) {
+                              List<Movie> movies = snapshot.data as List<Movie>;
+
+                              int index = Random().nextInt(movies.length - 1);
+                              Movie movie = movies[index];
+
+                              return Align(
+                                alignment: Alignment.topCenter,
+                                child: Container(
+                                  width: 500,
+                                  height: MediaQuery.of(context).size.height *
+                                          2 /
+                                          3 -
+                                      50,
+                                  decoration: BoxDecoration(
+                                      color: blackColor,
+                                      image: DecorationImage(
+                                          image: CachedNetworkImageProvider(
+                                              imageBaseURL + movie.posterPath),
+                                          fit: BoxFit.cover)),
+                                ),
+                              );
+                            } else {
+                              return const LoadingCircle();
+                            }
+                          })),
+                      Align(
+                        alignment: Alignment.topLeft,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(children: [
-                              Icon(
-                                Icons.add,
-                                size: 32,
-                                color: whiteColor,
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                "My List",
-                                style: whiteTextFont,
-                              )
-                            ]),
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 15),
-                              decoration: BoxDecoration(
-                                  color: whiteColor,
-                                  borderRadius: BorderRadius.circular(5)),
-                              child: Row(children: [
-                                const Icon(
-                                  Icons.play_arrow,
-                                  size: 32,
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  "Play",
-                                  style: blackTextFont.copyWith(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold),
-                                )
-                              ]),
+                              width: 55,
+                              height: 55,
+                              decoration: const BoxDecoration(
+                                  image: DecorationImage(
+                                      image: AssetImage(
+                                          "assets/netflix_icon.png"))),
                             ),
-                            Column(children: [
-                              Icon(
-                                Icons.info_outline_rounded,
-                                size: 32,
-                                color: whiteColor,
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                "Info",
-                                style: whiteTextFont,
-                              )
-                            ]),
+                            Row(
+                              children: [
+                                Icon(Icons.search, size: 32, color: whiteColor),
+                                const SizedBox(width: 20),
+                                GestureDetector(
+                                  onTap: () {
+                                    context
+                                        .read<PageBloc>()
+                                        .add(GoToUserPickPage());
+                                  },
+                                  child: Container(
+                                    width: 35,
+                                    height: 35,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(5),
+                                        image: DecorationImage(
+                                            image: AssetImage(
+                                                "assets/$currentUserPic"))),
+                                  ),
+                                ),
+                                SizedBox(width: defaultMargin),
+                              ],
+                            )
                           ],
                         ),
                       ),
-                      const SizedBox(height: 30),
-                      Container(
-                        margin: EdgeInsets.only(left: defaultMargin),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "Continue watching for $currentUser",
-                            style: whiteTextFont.copyWith(
-                                fontSize: 20, fontWeight: FontWeight.w900),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      displayMovieList(),
-                      const SizedBox(height: 30),
-                      Container(
-                        margin: EdgeInsets.only(left: defaultMargin),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "Trending Now",
-                            style: whiteTextFont.copyWith(
-                                fontSize: 20, fontWeight: FontWeight.w900),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      displayUpComingMovies(),
-                      const SizedBox(height: 100),
-                    ],
-                  ),
-                )),
-            Align(
-              alignment: Alignment.topLeft,
-              child: Container(
-                margin: const EdgeInsets.only(top: 30, right: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      width: 45,
-                      height: 45,
-                      decoration: const BoxDecoration(
-                          image: DecorationImage(
-                              image: AssetImage("assets/netflix_icon.png"))),
-                    ),
-                    Row(children: [
-                      Icon(Icons.search_rounded, color: whiteColor),
-                      const SizedBox(width: 20),
-                      GestureDetector(
-                        onTap: () {
-                          context.read<PageBloc>().add(GoToUserPickPage());
-                        },
-                        child: Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(5),
-                              image: DecorationImage(
-                                  image: AssetImage("assets/$currentUserPic"))),
-                        ),
-                      )
                     ]),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              MenuWithIcon(
+                                  title: "My List",
+                                  icon: Icons.add,
+                                  fontColor: greyColor,
+                                  iconColor: whiteColor),
+                              Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                      color: whiteColor,
+                                      borderRadius: BorderRadius.circular(5)),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.play_arrow, size: 28),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        "Play",
+                                        style: blackTextFont.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18),
+                                      )
+                                    ],
+                                  )),
+                              MenuWithIcon(
+                                  title: "Info",
+                                  icon: Icons.info_outlined,
+                                  fontColor: greyColor,
+                                  iconColor: whiteColor)
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          vertical: 20, horizontal: defaultMargin),
+                      child: Text(
+                        "Continue Watching for $currentUser",
+                        style: whiteTextFont.copyWith(
+                            fontWeight: FontWeight.bold, fontSize: 20),
+                      ),
+                    ),
+                    displayContinueMovie(),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          vertical: 20, horizontal: defaultMargin),
+                      child: Text(
+                        "Trending Now",
+                        style: whiteTextFont.copyWith(
+                            fontWeight: FontWeight.bold, fontSize: 20),
+                      ),
+                    ),
+                    displayTrendingMovie(),
+                    const SizedBox(height: 150)
                   ],
                 ),
               ),
             ),
             Align(
-              alignment: Alignment.bottomCenter,
-              child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
-                  height: (selectedMovieId > 0)
-                      ? MediaQuery.of(context).size.height * 1 / 2.5
-                      : 0,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade900,
-                    borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(10),
-                        topRight: Radius.circular(10)),
-                  ),
-                  child: (selectedMovieId > 0)
-                      ? DetailMoviePopup(
-                          movieId: selectedMovieId,
-                          onClose: () {
-                            setState(() {
-                              selectedMovieId = 0;
-                            });
-                          })
-                      : const SizedBox()),
-            ),
-            (selectedMovieId > 0)
-                ? const SizedBox()
-                : Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Material(
-                      elevation: 2.0,
-                      child: Container(
-                          height: 65,
-                          color: Colors.black,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 5, horizontal: 20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              MenuWithIcon(
-                                  iconSize: 28,
-                                  title: "Home",
-                                  icon: Icons.home,
-                                  iconColor: whiteColor,
-                                  fontColor: whiteColor),
-                              MenuWithIcon(
-                                iconSize: 28,
-                                title: "Games",
-                                icon: Icons.sports_esports_outlined,
-                                iconColor: greyColor,
-                                fontColor: greyColor,
-                              ),
-                              MenuWithIcon(
-                                iconSize: 28,
-                                title: "News & Hot",
-                                icon: Icons.movie_creation_outlined,
-                                iconColor: greyColor,
-                                fontColor: greyColor,
-                              ),
-                              MenuWithIcon(
-                                iconSize: 28,
-                                title: "Downloads",
-                                icon: Icons.get_app_rounded,
-                                iconColor: greyColor,
-                                fontColor: greyColor,
-                              )
-                            ],
-                          )),
+                alignment: Alignment.bottomCenter,
+                child: Stack(
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      height: (selectedMovieId > 0) ? 300 : 0,
+                      decoration: BoxDecoration(color: Colors.grey.shade900),
+                      child: (selectedMovieId > 0)
+                          ? DetailMoviePopup(
+                              movieId: selectedMovieId,
+                              onClose: () {
+                                setState(() {
+                                  selectedMovieId = 0;
+                                });
+                              })
+                          : const SizedBox(),
                     ),
-                  )
+                    (selectedMovieId > 0)
+                        ? const SizedBox()
+                        : Container(
+                            height: 65,
+                            padding: const EdgeInsets.all(5),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                MenuWithIcon(
+                                    title: "Home",
+                                    icon: Icons.home,
+                                    iconSize: 28,
+                                    fontColor: whiteColor,
+                                    iconColor: whiteColor),
+                                MenuWithIcon(
+                                    title: "Games",
+                                    iconSize: 28,
+                                    icon: Icons.sports_esports_outlined,
+                                    fontColor: greyColor,
+                                    iconColor: greyColor),
+                                MenuWithIcon(
+                                    title: "News & Hot",
+                                    iconSize: 28,
+                                    icon: Icons.newspaper,
+                                    fontColor: greyColor,
+                                    iconColor: greyColor),
+                                MenuWithIcon(
+                                    title: "Downloads",
+                                    iconSize: 28,
+                                    icon: Icons.get_app_rounded,
+                                    fontColor: greyColor,
+                                    iconColor: greyColor),
+                              ],
+                            ),
+                          ),
+                  ],
+                ))
           ],
         ),
       ),
     );
   }
 
-  Widget displayMovieList() {
+  Widget displayContinueMovie() {
     return FutureBuilder(
-        future: MovieServices.getMovies(1),
-        builder: ((context, snapshot) {
-          if (snapshot.hasData) {
-            List<Movie> movies = snapshot.data as List<Movie>;
+      future: MovieServices.getMovies(1),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          List<Widget> widgets = [];
 
-            List<Widget> widgets = [];
-            widgets.add(SizedBox(width: defaultMargin));
-            for (Movie movie in movies) {
-              widgets.add(Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  MovieBox(
-                    posterurl: movie.posterPath,
-                    movieRate: movie.voteAverage,
-                    isContinueWatching: true,
-                    onTapInfo: () {
-                      setState(() {
-                        selectedMovieId = movie.id;
-                      });
-                    },
-                  ),
-                ],
-              ));
-            }
-            return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const ClampingScrollPhysics(),
-                child: Row(children: widgets));
-          } else {
-            return const LoadingCircle();
+          List<Movie> movies = snapshot.data as List<Movie>;
+          widgets.add(SizedBox(
+            width: defaultMargin,
+          ));
+          for (Movie movie in movies) {
+            widgets.add(MovieBox(
+                posterurl: movie.posterPath,
+                movieRate: movie.voteAverage,
+                isContinueWatching: true,
+                onTapInfo: () {
+                  setState(() {
+                    selectedMovieId = movie.id;
+                  });
+                }));
           }
-        }));
+          return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const ClampingScrollPhysics(),
+              child: Row(children: widgets));
+        } else {
+          return const LoadingCircle();
+        }
+      },
+    );
   }
 
-  displayUpComingMovies() {
+  Widget displayTrendingMovie() {
     return FutureBuilder(
-        future: MovieServices.getUpComingMovies(1),
-        builder: ((context, snapshot) {
-          if (snapshot.hasData) {
-            List<Movie> movies = snapshot.data as List<Movie>;
+      future: MovieServices.getUpComingMovies(1),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          List<Widget> widgets = [];
 
-            List<Widget> widgets = [];
-            widgets.add(SizedBox(width: defaultMargin));
-            for (Movie movie in movies) {
-              widgets.add(GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedMovieId = movie.id;
-                    });
-                  },
-                  child: MovieBox(
-                    posterurl: movie.posterPath,
-                    movieRate: movie.voteAverage,
-                    onTapInfo: () {},
-                  )));
-            }
-            return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const ClampingScrollPhysics(),
-                child: Row(children: widgets));
-          } else {
-            return const LoadingCircle();
+          List<Movie> movies = snapshot.data as List<Movie>;
+          widgets.add(SizedBox(
+            width: defaultMargin,
+          ));
+          for (Movie movie in movies) {
+            widgets.add(GestureDetector(
+              onTap: () {
+                setState(() {
+                  selectedMovieId = movie.id;
+                });
+              },
+              child: MovieBox(
+                  posterurl: movie.posterPath,
+                  movieRate: movie.voteAverage,
+                  onTapInfo: () {}),
+            ));
           }
-        }));
+          return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const ClampingScrollPhysics(),
+              child: Row(children: widgets));
+        } else {
+          return const LoadingCircle();
+        }
+      },
+    );
   }
 }
